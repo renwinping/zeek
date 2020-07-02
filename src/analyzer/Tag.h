@@ -21,7 +21,7 @@ namespace plugin {
 		zeek::plugin::ComponentManager<T, C>;
 }
 
-namespace analyzer {
+namespace zeek::analyzer {
 
 class Manager;
 class Component;
@@ -125,4 +125,10 @@ protected:
 	explicit Tag(zeek::EnumVal* val);
 };
 
-}
+} // namespace zeek::analyzer
+
+namespace analyzer {
+	using Manager [[deprecated("Remove in v4.1. Use zeek::analyzer::Manager")]] = zeek::analyzer::Manager;
+	using Component [[deprecated("Remove in v4.1. Use zeek::analyzer::Component")]] = zeek::analyzer::Component;
+	using Tag [[deprecated("Remove in v4.1. Use zeek::analyzer::Tag")]] = zeek::analyzer::Tag;
+} // namespace analyzer
