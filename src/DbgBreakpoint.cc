@@ -19,6 +19,8 @@
 #include "Reporter.h"
 #include "module_util.h"
 
+namespace zeek::detail {
+
 // BreakpointTimer used for time-based breakpoints
 class BreakpointTimer final : public Timer {
 public:
@@ -371,3 +373,5 @@ void DbgBreakpoint::PrintHitMsg()
 		reporter->InternalError("Missed a case in DbgBreakpoint::PrintHitMsg\n");
 	}
 	}
+
+} // namespace zeek::detail

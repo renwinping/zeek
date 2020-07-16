@@ -5,9 +5,10 @@
 #include <string>
 #include "util.h"
 
-struct ParseLocationRec;
-
 ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
+ZEEK_FORWARD_DECLARE_NAMESPACED(ParseLocationRec, zeek::detail);
+
+namespace zeek::detail {
 
 enum BreakCode { bcNoHit, bcHit, bcHitAndDelete };
 class DbgBreakpoint {
@@ -81,3 +82,14 @@ protected:
 
 	std::string condition;	// condition to evaluate; nil for none
 };
+
+} // namespace zeek::detail
+
+using DbgBreakPoint [[deprecated("Remove in v4.1. Use zeek::detail::DbgBreakpoint instead.")]] = zeek::detail::DbgBreakpoint;
+
+[[deprecated("Remove in v4.1. Use zeek::detail::bcNoHit instead.")]]
+constexpr auto bcNoHit = zeek::detail::bcNoHit;
+[[deprecated("Remove in v4.1. Use zeek::detail::bcHit instead.")]]
+constexpr auto bcHit = zeek::detail::bcHit;
+[[deprecated("Remove in v4.1. Use zeek::detail::bcHitAndDelete instead.")]]
+constexpr auto bcHitAndDelete = zeek::detail::bcHitAndDelete;

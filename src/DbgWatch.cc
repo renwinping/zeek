@@ -7,16 +7,16 @@
 #include "Reporter.h"
 
 // Support classes
-DbgWatch::DbgWatch(zeek::Obj* var_to_watch)
+zeek::detail::DbgWatch::DbgWatch(zeek::Obj* var_to_watch)
 	{
 	reporter->InternalError("DbgWatch unimplemented");
 	}
 
-DbgWatch::DbgWatch(zeek::detail::Expr* expr_to_watch)
+zeek::detail::DbgWatch::DbgWatch(zeek::detail::Expr* expr_to_watch)
 	{
 	reporter->InternalError("DbgWatch unimplemented");
 	}
 
-DbgWatch::~DbgWatch()
+zeek::detail::DbgWatch::~DbgWatch()
 	{
 	}

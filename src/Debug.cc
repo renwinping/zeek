@@ -35,16 +35,41 @@ using namespace std;
 #include <readline/history.h>
 #endif
 
-bool g_policy_debug = false;
-DebuggerState g_debugger_state;
-TraceState g_trace_state;
-std::map<string, Filemap*> g_dbgfilemaps;
+bool zeek::detail::g_policy_debug = false;
+bool& g_policy_debug = zeek::detail::g_policy_debug;
+
+zeek::detail::DebuggerState zeek::detail::g_debugger_state;
+zeek::detail::DebuggerState& g_debugger_state = zeek::detail::g_debugger_state;
+
+zeek::detail::TraceState zeek::detail::g_trace_state;
+zeek::detail::TraceState& g_trace_state = zeek::detail::g_trace_state;
+
+std::map<string, zeek::detail::Filemap*> zeek::detail::g_dbgfilemaps;
+std::map<string, zeek::detail::Filemap*>& g_dbgfilemaps = zeek::detail::g_dbgfilemaps;
 
 // These variables are used only to decide whether or not to print the
 // current context; you don't want to do it after a step or next
 // command unless you've exited a function.
 static bool step_or_next_pending = false;
 static zeek::detail::Frame* last_frame;
+
+// The following values are needed by parse.y.
+// Evaluates the given expression in the context of the currently selected
+// frame.  Returns the resulting value, or nil if none (or there was an error).
+zeek::detail::Expr* g_curr_debug_expr = nullptr;
+const char* g_curr_debug_error = nullptr;
+bool in_debug = false;
+
+// ### fix this hardwired access to external variables etc.
+struct yy_buffer_state;
+typedef struct yy_buffer_state* YY_BUFFER_STATE;
+YY_BUFFER_STATE bro_scan_string(const char*);
+
+extern YYLTYPE yylloc;	// holds start line and column of token
+extern int line_number;
+extern const char* filename;
+
+namespace zeek::detail {
 
 DebuggerState::DebuggerState()
 	{
@@ -634,7 +659,7 @@ static int dbg_dispatch_cmd(DebugCmd cmd_code, const vector<string>& args)
 	{
 	switch ( cmd_code ) {
 	case dcHelp:
-		dbg_cmd_help(cmd_code, args);
+		zeek::detail::dbg_cmd_help(cmd_code, args);
 		break;
 
 	case dcQuit:
@@ -664,11 +689,11 @@ static int dbg_dispatch_cmd(DebugCmd cmd_code, const vector<string>& args)
 		break;
 
 	case dcBreak:
-		dbg_cmd_break(cmd_code, args);
+		zeek::detail::dbg_cmd_break(cmd_code, args);
 		break;
 
 	case dcBreakCondition:
-		dbg_cmd_break_condition(cmd_code, args);
+		zeek::detail::dbg_cmd_break_condition(cmd_code, args);
 		break;
 
 	case dcDeleteBreak:
@@ -676,26 +701,26 @@ static int dbg_dispatch_cmd(DebugCmd cmd_code, const vector<string>& args)
 	case dcDisableBreak:
 	case dcEnableBreak:
 	case dcIgnoreBreak:
-		dbg_cmd_break_set_state(cmd_code, args);
+		zeek::detail::dbg_cmd_break_set_state(cmd_code, args);
 		break;
 
 	case dcPrint:
-		dbg_cmd_print(cmd_code, args);
+		zeek::detail::dbg_cmd_print(cmd_code, args);
 		break;
 
 	case dcBacktrace:
-		return dbg_cmd_backtrace(cmd_code, args);
+		return zeek::detail::dbg_cmd_backtrace(cmd_code, args);
 
 	case dcFrame:
 	case dcUp:
 	case dcDown:
-		return dbg_cmd_frame(cmd_code, args);
+		return zeek::detail::dbg_cmd_frame(cmd_code, args);
 
 	case dcInfo:
-		return dbg_cmd_info(cmd_code, args);
+		return zeek::detail::dbg_cmd_info(cmd_code, args);
 
 	case dcList:
-		return dbg_cmd_list(cmd_code, args);
+		return zeek::detail::dbg_cmd_list(cmd_code, args);
 
 	case dcDisplay:
 	case dcUndisplay:
@@ -703,7 +728,7 @@ static int dbg_dispatch_cmd(DebugCmd cmd_code, const vector<string>& args)
 		break;
 
 	case dcTrace:
-		return dbg_cmd_trace(cmd_code, args);
+		return zeek::detail::dbg_cmd_trace(cmd_code, args);
 
 	default:
 		debug_msg("INTERNAL ERROR: "
@@ -932,22 +957,6 @@ bool post_execute_stmt(zeek::detail::Stmt* stmt, zeek::detail::Frame* f, zeek::V
 	return true;
 	}
 
-
-// Evaluates the given expression in the context of the currently selected
-// frame.  Returns the resulting value, or nil if none (or there was an error).
-zeek::detail::Expr* g_curr_debug_expr = nullptr;
-const char* g_curr_debug_error = nullptr;
-bool in_debug = false;
-
-// ### fix this hardwired access to external variables etc.
-struct yy_buffer_state;
-typedef struct yy_buffer_state* YY_BUFFER_STATE;
-YY_BUFFER_STATE bro_scan_string(const char*);
-
-extern YYLTYPE yylloc;	// holds start line and column of token
-extern int line_number;
-extern const char* filename;
-
 zeek::ValPtr dbg_eval_expr(const char* expr)
 	{
 	// Push the current frame's associated scope.
@@ -1011,3 +1020,5 @@ zeek::ValPtr dbg_eval_expr(const char* expr)
 
 	return result;
 	}
+
+} // namespace zeek::detail
