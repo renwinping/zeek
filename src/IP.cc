@@ -49,6 +49,8 @@ static zeek::VectorValPtr BuildOptionsVal(const u_char* data, int len)
 	return vv;
 	}
 
+namespace zeek {
+
 zeek::RecordValPtr IPv6_Hdr::ToVal(zeek::VectorValPtr chain) const
 	{
 	zeek::RecordValPtr rv;
@@ -64,8 +66,8 @@ zeek::RecordValPtr IPv6_Hdr::ToVal(zeek::VectorValPtr chain) const
 		rv->Assign(2, zeek::val_mgr->Count(ntohs(ip6->ip6_plen)));
 		rv->Assign(3, zeek::val_mgr->Count(ip6->ip6_nxt));
 		rv->Assign(4, zeek::val_mgr->Count(ip6->ip6_hlim));
-		rv->Assign(5, zeek::make_intrusive<zeek::AddrVal>(IPAddr(ip6->ip6_src)));
-		rv->Assign(6, zeek::make_intrusive<zeek::AddrVal>(IPAddr(ip6->ip6_dst)));
+		rv->Assign(5, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(ip6->ip6_src)));
+		rv->Assign(6, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(ip6->ip6_dst)));
 		if ( ! chain )
 			chain = zeek::make_intrusive<zeek::VectorVal>(
 			    zeek::id::find_type<zeek::VectorType>("ip6_ext_hdr_chain"));
@@ -274,7 +276,7 @@ zeek::RecordValPtr IPv6_Hdr::ToVal(zeek::VectorValPtr chain) const
 			auto m = zeek::make_intrusive<zeek::RecordVal>(ip6_mob_be_type);
 			m->Assign(0, zeek::val_mgr->Count(*((uint8_t*)msg_data)));
 			const in6_addr* hoa = (const in6_addr*)(msg_data + sizeof(uint16_t));
-			m->Assign(1, zeek::make_intrusive<zeek::AddrVal>(IPAddr(*hoa)));
+			m->Assign(1, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(*hoa)));
 			off += sizeof(uint16_t) + sizeof(in6_addr);
 			m->Assign(2, BuildOptionsVal(data + off, Length() - off));
 			msg->Assign(8, std::move(m));
@@ -306,27 +308,27 @@ zeek::RecordVal* IPv6_Hdr::BuildRecordVal(zeek::VectorVal* chain) const
 	return ToVal({zeek::AdoptRef{}, chain}).release();
 	}
 
-IPAddr IP_Hdr::IPHeaderSrcAddr() const
+zeek::IPAddr zeek::IP_Hdr::IPHeaderSrcAddr() const
 	{
-	return ip4 ? IPAddr(ip4->ip_src) : IPAddr(ip6->ip6_src);
+	return ip4 ? zeek::IPAddr(ip4->ip_src) : zeek::IPAddr(ip6->ip6_src);
 	}
 
-IPAddr IP_Hdr::IPHeaderDstAddr() const
+zeek::IPAddr zeek::IP_Hdr::IPHeaderDstAddr() const
 	{
-	return ip4 ? IPAddr(ip4->ip_dst) : IPAddr(ip6->ip6_dst);
+	return ip4 ? zeek::IPAddr(ip4->ip_dst) : zeek::IPAddr(ip6->ip6_dst);
 	}
 
-IPAddr IP_Hdr::SrcAddr() const
+zeek::IPAddr zeek::IP_Hdr::SrcAddr() const
 	{
-	return ip4 ? IPAddr(ip4->ip_src) : ip6_hdrs->SrcAddr();
+	return ip4 ? zeek::IPAddr(ip4->ip_src) : ip6_hdrs->SrcAddr();
 	}
 
-IPAddr IP_Hdr::DstAddr() const
+zeek::IPAddr zeek::IP_Hdr::DstAddr() const
 	{
-	return ip4 ? IPAddr(ip4->ip_dst) : ip6_hdrs->DstAddr();
+	return ip4 ? zeek::IPAddr(ip4->ip_dst) : ip6_hdrs->DstAddr();
 	}
 
-zeek::RecordValPtr IP_Hdr::ToIPHdrVal() const
+zeek::RecordValPtr zeek::IP_Hdr::ToIPHdrVal() const
 	{
 	zeek::RecordValPtr rval;
 
@@ -351,23 +353,23 @@ zeek::RecordValPtr IP_Hdr::ToIPHdrVal() const
 	return rval;
 	}
 
-zeek::RecordVal* IP_Hdr::BuildIPHdrVal() const
+zeek::RecordVal* zeek::IP_Hdr::BuildIPHdrVal() const
 	{
 	return ToIPHdrVal().release();
 	}
 
-zeek::RecordValPtr IP_Hdr::ToPktHdrVal() const
+zeek::RecordValPtr zeek::IP_Hdr::ToPktHdrVal() const
 	{
 	static auto pkt_hdr_type = zeek::id::find_type<zeek::RecordType>("pkt_hdr");
 	return ToPktHdrVal(zeek::make_intrusive<zeek::RecordVal>(pkt_hdr_type), 0);
 	}
 
-zeek::RecordVal* IP_Hdr::BuildPktHdrVal() const
+zeek::RecordVal* zeek::IP_Hdr::BuildPktHdrVal() const
 	{
 	return ToPktHdrVal().release();
 	}
 
-zeek::RecordValPtr IP_Hdr::ToPktHdrVal(zeek::RecordValPtr pkt_hdr, int sindex) const
+zeek::RecordValPtr zeek::IP_Hdr::ToPktHdrVal(zeek::RecordValPtr pkt_hdr, int sindex) const
 	{
 	static auto tcp_hdr_type = zeek::id::find_type<zeek::RecordType>("tcp_hdr");
 	static auto udp_hdr_type = zeek::id::find_type<zeek::RecordType>("udp_hdr");
@@ -450,7 +452,7 @@ zeek::RecordValPtr IP_Hdr::ToPktHdrVal(zeek::RecordValPtr pkt_hdr, int sindex) c
 	return pkt_hdr;
 	}
 
-zeek::RecordVal* IP_Hdr::BuildPktHdrVal(zeek::RecordVal* pkt_hdr, int sindex) const
+zeek::RecordVal* zeek::IP_Hdr::BuildPktHdrVal(zeek::RecordVal* pkt_hdr, int sindex) const
 	{
 	return ToPktHdrVal({zeek::AdoptRef{}, pkt_hdr}, sindex).release();
 	}
@@ -557,33 +559,33 @@ bool IPv6_Hdr_Chain::IsFragment() const
 	return chain[chain.size()-1]->Type() == IPPROTO_FRAGMENT;
 	}
 
-IPAddr IPv6_Hdr_Chain::SrcAddr() const
+zeek::IPAddr IPv6_Hdr_Chain::SrcAddr() const
 	{
 #ifdef ENABLE_MOBILE_IPV6
 	if ( homeAddr )
-		return IPAddr(*homeAddr);
+		return zeek::IPAddr(*homeAddr);
 #endif
 	if ( chain.empty() )
 		{
 		reporter->InternalWarning("empty IPv6 header chain");
-		return IPAddr();
+		return zeek::IPAddr();
 		}
 
-	return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_src);
+	return zeek::IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_src);
 	}
 
-IPAddr IPv6_Hdr_Chain::DstAddr() const
+zeek::IPAddr IPv6_Hdr_Chain::DstAddr() const
 	{
 	if ( finalDst )
-		return IPAddr(*finalDst);
+		return zeek::IPAddr(*finalDst);
 
 	if ( chain.empty() )
 		{
 		reporter->InternalWarning("empty IPv6 header chain");
-		return IPAddr();
+		return zeek::IPAddr();
 		}
 
-	return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_dst);
+	return zeek::IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_dst);
 	}
 
 void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t len)
@@ -604,7 +606,7 @@ void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t le
 		if ( r->ip6r_segleft > 0 && r->ip6r_len >= 2 )
 			{
 			if ( r->ip6r_len % 2 == 0 )
-				finalDst = new IPAddr(*addr);
+				finalDst = new zeek::IPAddr(*addr);
 			else
 				reporter->Weird(SrcAddr(), DstAddr(), "odd_routing0_len");
 			}
@@ -620,7 +622,7 @@ void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t le
 		if ( r->ip6r_segleft > 0 )
 			{
 			if ( r->ip6r_len == 2 )
-				finalDst = new IPAddr(*addr);
+				finalDst = new zeek::IPAddr(*addr);
 			else
 				reporter->Weird(SrcAddr(), DstAddr(), "bad_routing2_len");
 			}
@@ -652,7 +654,7 @@ void IPv6_Hdr_Chain::ProcessDstOpts(const struct ip6_dest* d, uint16_t len)
 				if ( homeAddr )
 					reporter->Weird(SrcAddr(), DstAddr(), "multiple_home_addr_opts");
 				else
-					homeAddr = new IPAddr(*((const in6_addr*)(data + 2)));
+					homeAddr = new zeek::IPAddr(*((const in6_addr*)(data + 2)));
 			else
 				reporter->Weird(SrcAddr(), DstAddr(), "bad_home_addr_len");
 			}
@@ -735,20 +737,20 @@ zeek::VectorVal* IPv6_Hdr_Chain::BuildVal() const
 	return ToVal().release();
 	}
 
-IP_Hdr* IP_Hdr::Copy() const
+zeek::IP_Hdr* zeek::IP_Hdr::Copy() const
 	{
 	char* new_hdr = new char[HdrLen()];
 
 	if ( ip4 )
 		{
 		memcpy(new_hdr, ip4, HdrLen());
-		return new IP_Hdr((const struct ip*) new_hdr, true);
+		return new zeek::IP_Hdr((const struct ip*) new_hdr, true);
 		}
 
 	memcpy(new_hdr, ip6, HdrLen());
 	const struct ip6_hdr* new_ip6 = (const struct ip6_hdr*)new_hdr;
 	IPv6_Hdr_Chain* new_ip6_hdrs = ip6_hdrs->Copy(new_ip6);
-	return new IP_Hdr(new_ip6, true, 0, new_ip6_hdrs);
+	return new zeek::IP_Hdr(new_ip6, true, 0, new_ip6_hdrs);
 	}
 
 IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const
@@ -758,11 +760,11 @@ IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const
 
 #ifdef ENABLE_MOBILE_IPV6
 	if ( homeAddr )
-		rval->homeAddr = new IPAddr(*homeAddr);
+		rval->homeAddr = new zeek::IPAddr(*homeAddr);
 #endif
 
 	if ( finalDst )
-		rval->finalDst = new IPAddr(*finalDst);
+		rval->finalDst = new zeek::IPAddr(*finalDst);
 
 	if ( chain.empty() )
 		{
@@ -782,3 +784,5 @@ IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const
 
 	return rval;
 	}
+
+} // namespace zeek
