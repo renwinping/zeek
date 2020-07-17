@@ -2246,7 +2246,7 @@ zeek::Val* Manager::ValueToVal(const Stream* i, const Value* val, zeek::Type* re
 
 	case zeek::TYPE_PATTERN:
 		{
-		RE_Matcher* re = new RE_Matcher(val->val.pattern_text_val);
+		zeek::RE_Matcher* re = new zeek::RE_Matcher(val->val.pattern_text_val);
 		re->Compile();
 		return new zeek::PatternVal(re);
 		}
