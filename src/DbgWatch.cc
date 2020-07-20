@@ -9,12 +9,12 @@
 // Support classes
 zeek::detail::DbgWatch::DbgWatch(zeek::Obj* var_to_watch)
 	{
-	reporter->InternalError("DbgWatch unimplemented");
+	zeek::reporter->InternalError("DbgWatch unimplemented");
 	}
 
 zeek::detail::DbgWatch::DbgWatch(zeek::detail::Expr* expr_to_watch)
 	{
-	reporter->InternalError("DbgWatch unimplemented");
+	zeek::reporter->InternalError("DbgWatch unimplemented");
 	}
 
 zeek::detail::DbgWatch::~DbgWatch()
