@@ -10,6 +10,8 @@ ZEEK_FORWARD_DECLARE_NAMESPACED(Stmt, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(Expr, zeek::detail);
 ZEEK_FORWARD_DECLARE_NAMESPACED(ID, zeek::detail);
 
+namespace zeek {
+
 class TraversalCallback {
 public:
 	TraversalCallback()	{ current_scope = nullptr; }
@@ -37,3 +39,8 @@ public:
 };
 
 TraversalCode traverse_all(TraversalCallback* cb);
+
+} // namespace zeek
+
+using TraversalCallback [[deprecated("Remove in v4.1. Use zeek::TraversalCallback.")]] = zeek::TraversalCallback;
+constexpr auto traverse_all [[deprecated("Remove in v4.1. Use zeek::traverse_all.")]] = zeek::traverse_all;
